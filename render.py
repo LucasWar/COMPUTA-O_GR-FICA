@@ -7,11 +7,11 @@ import config
 from utils import update_projection
 from classCarro import Carro
 from objetos import Icone
-
+import math
 def init():
     global carro, police
     # Define a cor de fundo da janela (branco)
-    glClearColor(1.0, 1.0, 1.0, 1.0)
+    glClearColor(0.7, 0.7, 0.7, 1.0)
     update_projection()
     glEnable(GL_POLYGON_SMOOTH)
     glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST)
@@ -20,56 +20,53 @@ def init():
     glEnable(GL_BLEND);                           # habilita a funcionalidade de mistura (necessário para objetos transparentes)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)   # define como a mistura entre objetos transparência deve ser realizada
     carro = Carro()
-    police = Icone()
+    police = Icone(config.posIcones)
 
 
 def desenharCaminho():
     if config.caminhoFinal:
         glColor(0.43, 0.72, 1)  # Cor do caminho
         glBegin(GL_QUADS)  # Usando quadriláteros para garantir o preenchimento
-
         pontos = list(config.caminhoFinal.items())
-
+        
         for i in range(len(pontos) - 1):
-            x1, y1 = pontos[i][1]
-            x2, y2 = pontos[i+1][1]
+            # Pontos do caminho atual e o próximo ponto
+            ponto1 = glm.vec2(pontos[i][1])
+            ponto2 = glm.vec2(pontos[i + 1][1])
 
             # Calcular a direção do caminho
-            dx, dy = x2 - x1, y2 - y1
-            length = np.hypot(dx, dy)
-            dx, dy = dx / length, dy / length
+            direcao = ponto2 - ponto1
+            direcao = glm.normalize(direcao)
 
             # Calcular os deslocamentos para criar o retângulo
-            offset_x, offset_y = -dy * config.larguraPista / 2, dx * config.larguraPista / 2
+            perpendicular = glm.vec2(-direcao.y, direcao.x) * (config.larguraPista / 2)
 
             # Definir os quatro vértices do quadrilátero principal
             vertices = [
-                (x1 + offset_x, y1 + offset_y),
-                (x1 - offset_x, y1 - offset_y),
-                (x2 - offset_x, y2 - offset_y),
-                (x2 + offset_x, y2 + offset_y),
+                ponto1 + perpendicular,
+                ponto1 - perpendicular,
+                ponto2 - perpendicular,
+                ponto2 + perpendicular,
             ]
 
             # Desenhar o quadrilátero principal
             for vertex in vertices:
-                glVertex2f(vertex[0], vertex[1])
+                glVertex2f(vertex.x, vertex.y)
 
             # Desenhar vértices extras nas interseções para evitar lacunas
             if i > 0:
-                x0, y0 = pontos[i-1][1]
-                dx_prev, dy_prev = x1 - x0, y1 - y0
-                length_prev = np.hypot(dx_prev, dy_prev)
-                dx_prev, dy_prev = dx_prev / length_prev, dy_prev / length_prev
-                offset_x_prev, offset_y_prev = -dy_prev * config.larguraPista / 2, dx_prev * config.larguraPista / 2
+                ponto_prev = glm.vec2(pontos[i - 1][1])
+                direcao_prev = ponto1 - ponto_prev
+                direcao_prev = glm.normalize(direcao_prev)
+                perpendicular_prev = glm.vec2(-direcao_prev.y, direcao_prev.x) * (config.larguraPista / 2)
 
                 # Vértices intermediários para preencher a área na interseção
-                glVertex2f(x1 + offset_x_prev, y1 + offset_y_prev)
-                glVertex2f(x1 + offset_x, y1 + offset_y)
-                glVertex2f(x1 - offset_x, y1 - offset_y)
-                glVertex2f(x1 - offset_x_prev, y1 - offset_y_prev)
+                glVertex2f(ponto1.x + perpendicular_prev.x, ponto1.y + perpendicular_prev.y)
+                glVertex2f(ponto1.x + perpendicular.x, ponto1.y + perpendicular.y)
+                glVertex2f(ponto1.x - perpendicular.x, ponto1.y - perpendicular.y)
+                glVertex2f(ponto1.x - perpendicular_prev.x, ponto1.y - perpendicular_prev.y)
         
         glEnd()
-
 
 def desenharElementos():
     for caracte in config.naturalElementos:
@@ -130,34 +127,36 @@ def desenharPredio3d(polygon, altura=0.0002):
         glVertex3f(coord[0], coord[1], altura)
     glEnd()
 
+
+
 def drawMap():
     glColor3f(0.5, 0.5, 0.5)
     
     # Primeira parte: Desenho das estradas
     glBegin(GL_QUADS)
     for u, v, data in config.mapa.edges(keys=False, data=True):
-        x1, y1 = config.mapa.nodes[u]['x'], config.mapa.nodes[u]['y']
-        x2, y2 = config.mapa.nodes[v]['x'], config.mapa.nodes[v]['y']
+        # Usando glm para facilitar o cálculo dos pontos
+        ponto1 = glm.vec2(config.mapa.nodes[u]['x'], config.mapa.nodes[u]['y'])
+        ponto2 = glm.vec2(config.mapa.nodes[v]['x'], config.mapa.nodes[v]['y'])
 
-        # Calcular direção e tamanho do segmento
-        dx, dy = x2 - x1, y2 - y1
-        length = np.hypot(dx, dy)
-        dx, dy = dx / length, dy / length
+        # Calcular direção e normalizar
+        direcao = ponto2 - ponto1
+        direcao = glm.normalize(direcao)
 
         # Calcular o deslocamento perpendicular para a largura da estrada
-        offset_x, offset_y = -dy * config.larguraPista / 2, dx * config.larguraPista / 2
+        perpendicular = glm.vec2(-direcao.y, direcao.x) * (config.larguraPista / 2)
 
         # Calcular vértices do quadrilátero
-        v1 = (x1 + offset_x, y1 + offset_y)
-        v2 = (x1 - offset_x, y1 - offset_y)
-        v3 = (x2 - offset_x, y2 - offset_y)
-        v4 = (x2 + offset_x, y2 + offset_y)
+        vertices = [
+            ponto1 + perpendicular,
+            ponto1 - perpendicular,
+            ponto2 - perpendicular,
+            ponto2 + perpendicular,
+        ]
         
         # Desenhar o quadrilátero
-        glVertex2f(*v1)
-        glVertex2f(*v2)
-        glVertex2f(*v3)
-        glVertex2f(*v4)
+        for vertex in vertices:
+            glVertex2f(vertex.x, vertex.y)
     glEnd()
     
     # Segunda parte: Conexão das quinas com tratamento aprimorado
@@ -167,81 +166,81 @@ def drawMap():
         if len(neighbors) < 2:
             continue  # Precisa de pelo menos duas estradas para formar uma quina
 
-        x_center, y_center = config.mapa.nodes[node]['x'], config.mapa.nodes[node]['y']
+        ponto_central = glm.vec2(config.mapa.nodes[node]['x'], config.mapa.nodes[node]['y'])
         
         # Ordenar vizinhos em sentido horário
         angles = []
         for neighbor in neighbors:
-            nx, ny = config.mapa.nodes[neighbor]['x'], config.mapa.nodes[neighbor]['y']
-            angle = np.arctan2(ny - y_center, nx - x_center)
+            ponto_vizinho = glm.vec2(config.mapa.nodes[neighbor]['x'], config.mapa.nodes[neighbor]['y'])
+            angle = np.arctan2(ponto_vizinho.y - ponto_central.y, ponto_vizinho.x - ponto_central.x)
             angles.append((angle, neighbor))
         angles.sort()
 
         for i in range(len(angles)):
-            _, neighbor1 = angles[i]
-            _, neighbor2 = angles[(i + 1) % len(angles)]
-            x1, y1 = config.mapa.nodes[neighbor1]['x'], config.mapa.nodes[neighbor1]['y']
-            x2, y2 = config.mapa.nodes[neighbor2]['x'], config.mapa.nodes[neighbor2]['y']
+            _, vizinho1 = angles[i]
+            _, vizinho2 = angles[(i + 1) % len(angles)]
+            ponto_vizinho1 = glm.vec2(config.mapa.nodes[vizinho1]['x'], config.mapa.nodes[vizinho1]['y'])
+            ponto_vizinho2 = glm.vec2(config.mapa.nodes[vizinho2]['x'], config.mapa.nodes[vizinho2]['y'])
 
             # Calcular os vetores de direção
-            dx1, dy1 = x1 - x_center, y1 - y_center
-            dx2, dy2 = x2 - x_center, y2 - y_center
-            length1 = np.hypot(dx1, dy1)
-            length2 = np.hypot(dx2, dy2)
-            dx1, dy1 = dx1 / length1, dy1 / length1
-            dx2, dy2 = dx2 / length2, dy2 / length2
+            direcao1 = glm.normalize(ponto_vizinho1 - ponto_central)
+            direcao2 = glm.normalize(ponto_vizinho2 - ponto_central)
 
             # Calcular os deslocamentos para a largura da estrada
-            offset_x1, offset_y1 = -dy1 * config.larguraPista / 2, dx1 * config.larguraPista / 2
-            offset_x2, offset_y2 = -dy2 * config.larguraPista / 2, dx2 * config.larguraPista / 2
+            perpendicular1 = glm.vec2(-direcao1.y, direcao1.x) * (config.larguraPista / 2)
+            perpendicular2 = glm.vec2(-direcao2.y, direcao2.x) * (config.larguraPista / 2)
 
             # Desenhar triângulo na quina
-            glVertex2f(x_center + offset_x1, y_center + offset_y1)
-            glVertex2f(x_center + offset_x2, y_center + offset_y2)
-            glVertex2f(x_center, y_center)
+            glVertex2f(ponto_central.x + perpendicular1.x, ponto_central.y + perpendicular1.y)
+            glVertex2f(ponto_central.x + perpendicular2.x, ponto_central.y + perpendicular2.y)
+            glVertex2f(ponto_central.x, ponto_central.y)
 
             # Desenhar vértices intermediários para garantir preenchimento correto na quina
-            glVertex2f(x_center + offset_x1, y_center + offset_y1)
-            glVertex2f(x_center + offset_x2, y_center + offset_y2)
-            glVertex2f(x_center, y_center)
+            glVertex2f(ponto_central.x + perpendicular1.x, ponto_central.y + perpendicular1.y)
+            glVertex2f(ponto_central.x + perpendicular2.x, ponto_central.y + perpendicular2.y)
+            glVertex2f(ponto_central.x, ponto_central.y)
     glEnd()
 
 
 
 
 def drawPoints():
-    glColor3f(1.0, 0.0, 0.0)
-    glPointSize(5.0)
-    glBegin(GL_POINTS)
+    glColor3f(1.0, 0.0, 0.0)  # Cor vermelha
+    num_segments = 100  # Número de segmentos do círculo
+    radius = 0.00007  # Raio do círculo
+
     for point in config.points:
-        glVertex2f(point[0], point[1])
-    glEnd()
-
-
-
-
-
+        glBegin(GL_POLYGON)
+        for i in range(num_segments):
+            theta = 2.0 * math.pi * i / num_segments  # Ângulo atual
+            x = radius * math.cos(theta)  # Coordenada x do ponto no círculo
+            y = radius * math.sin(theta)  # Coordenada y do ponto no círculo
+            glVertex2f(point[0] + x, point[1] + y)  # Adiciona o ponto ajustado
+        glEnd()
 
 def display():
     global novaMatrizDeVizinhos, caminhoFinal
+
+
     glClear(GL_COLOR_BUFFER_BIT)
     
     drawMap()
+
     desenharPredios()
 
     desenharElementos()
 
     drawPoints()
+
     desenharCaminho()
 
     glPushMatrix()
-    
-    glTranslatef(config.longitude,config.latitude,0)
     police.desenha()
     glPopMatrix()
 
     glPushMatrix()
     glMultMatrixf(np.asarray(glm.transpose(config.M))) # função que aplica uma matriz qualquer no objeto
     carro.desenha()
+    
     glPopMatrix()
     glutSwapBuffers()

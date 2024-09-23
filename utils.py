@@ -3,6 +3,7 @@ from OpenGL.GLUT import *
 from OpenGL.GLU import *
 from PIL import Image
 import numpy as np
+import random
 import config
 import glm
 
@@ -21,13 +22,14 @@ def update_projection():
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
         camera_distance = 0.001  # Distância da câmera atrás do carro
-        camera_height = 0.001  # Altura da câmera acima do carro
+        camera_height = 0.0008  # Altura da câmera acima do carro
         camera_position = config.pos - config.dir * camera_distance + glm.vec3(0, 0, camera_height)
         look_at_point = config.pos + config.dir * 0.001  # Ponto para onde a câmera está olhando
         up_vector = glm.vec3(0, 0, 1)  # Vetor "up" da câmera
         gluLookAt(camera_position.x, camera_position.y, camera_position.z,
                   look_at_point.x, look_at_point.y, look_at_point.z,
                   up_vector.x, up_vector.y, up_vector.z)
+        
     elif config.current_mode == "ortho":
         width = (config.x_max - config.x_min) * config.qtdZoom
         height = (config.y_max - config.y_min) * config.qtdZoom
@@ -116,28 +118,31 @@ def buscarPontoMaisProximo(mapX, mapY):
 
 def vericarCarroEstrada():
     # Verificar a posição do carro em relação aos polígonos das estradas
-    car_pos = config.pos
-    car_size = config.tamCarro / 2.0
+    car_pos = glm.vec2(config.pos.x, config.pos.y)  # Converta para vetor 2D
 
     for u, v, data in config.mapa.edges(keys=False, data=True):
-        x1, y1 = config.mapa.nodes[u]['x'], config.mapa.nodes[u]['y']
-        x2, y2 = config.mapa.nodes[v]['x'], config.mapa.nodes[v]['y']
-        
-        # Calcular os vértices do polígono da estrada
-        dx, dy = x2 - x1, y2 - y1
-        length = np.hypot(dx, dy)
-        dx, dy = dx / length, dy / length
+        # Coordenadas dos nós da estrada
+        ponto1 = glm.vec2(config.mapa.nodes[u]['x'], config.mapa.nodes[u]['y'])
+        ponto2 = glm.vec2(config.mapa.nodes[v]['x'], config.mapa.nodes[v]['y'])
 
-        offset_x, offset_y = -dy * config.larguraPista / 2, dx * config.larguraPista / 2
+        # Vetor da estrada
+        direcao = ponto2 - ponto1
+        length = glm.length(direcao)
+        direcao = glm.normalize(direcao)
+
+        # Vetor perpendicular para calcular o deslocamento da largura da estrada
+        perpendicular = glm.vec2(-direcao.y, direcao.x) * (config.larguraPista / 2)
+
+        # Vértices do polígono da estrada
         vertices = [
-            glm.vec2(x1 + offset_x, y1 + offset_y),
-            glm.vec2(x1 - offset_x, y1 - offset_y),
-            glm.vec2(x2 - offset_x, y2 - offset_y),
-            glm.vec2(x2 + offset_x, y2 + offset_y),
+            ponto1 + perpendicular,  # Canto superior esquerdo
+            ponto1 - perpendicular,  # Canto inferior esquerdo
+            ponto2 - perpendicular,  # Canto inferior direito
+            ponto2 + perpendicular,  # Canto superior direito
         ]
 
-        # Verificar se a posição do carro (considerando o tamanho) está dentro do polígono
-        if verificarPontoPoligno(car_pos.x, car_pos.y, vertices):
+        # Verificar se a posição do carro está dentro do polígono
+        if verificarPontoPoligno(car_pos.x,car_pos.y,vertices):
             return True
 
     return False
@@ -174,3 +179,19 @@ def attModeview(mode):
     config.current_mode = mode
     update_projection()
     glutPostRedisplay()
+
+
+def gerarCordenadasIcones(mapa, n=5):
+    # Obtem os nós e as coordenadas do mapa
+    nodes = mapa.nodes(data=True, default=None)
+    coords = np.array([(data['x'], data['y']) for node, data in nodes])
+
+    cordenadasFinais = []
+
+    # Pega 'n' coordenadas aleatórias
+    coordenadas_aleatorias = random.sample(list(coords), n)
+
+    for x,y in coordenadas_aleatorias:
+        cordenadasFinais.append(glm.vec3(x,y,0))
+
+    return cordenadasFinais

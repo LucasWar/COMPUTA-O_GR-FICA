@@ -35,6 +35,6 @@ def keyboard(key, x, y):
         else:
             config.current_mode = "perspective"
     elif key == b's':  # Alterna entre modos devisualização
-        iniciar_movimento()
+        config.velocDir = 0.0003
     update_projection()
     glutPostRedisplay()

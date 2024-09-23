@@ -34,8 +34,7 @@ def mouse(button, state, x, y):
 
                 vizinhosPonto = buscaVizinhosDoPonto(mapX, mapY)
                 config.novaMatrizDeVizinhos[mapX, mapY] = vizinhosPonto
-                print("ponto 1 coordenadas x = {} e y = {}".format(mapX, mapY))
-                print("Vizinhos {}",vizinhosPonto)
+                
             else:
                 vizinhosPonto = buscaVizinhosDoPonto(mapX, mapY)
                 config.novaMatrizDeVizinhos[mapX, mapY] = vizinhosPonto
@@ -43,9 +42,21 @@ def mouse(button, state, x, y):
                 for vizinho in vizinhosPonto:
                     config.novaMatrizDeVizinhos[vizinho[0],vizinho[1]].append((mapX, mapY))
                 config.caminhoFinal = estrela(config.points[0][0],config.points[0][1],config.points[1][0],config.points[1][1],config.novaMatrizDeVizinhos)
+
+                config.caminho_atual = [(x, y) for x, y in config.caminhoFinal.keys()]
+                config.caminhoFinal['none'] = (config.points[0][0],config.points[0][1])
+
+                config.caminho_atual.reverse()
+                config.caminho_atual.append((mapX,mapY))
+
+                config.current_mode = "perspective"
+                
+
                 iniciar_movimento()
-                print("ponto 1 coordenadas x = {} e y = {}".format(mapX, mapY))
-                print("Vizinhos {}",vizinhosPonto)
+                update_projection()
+                print("ponto final caminho_atual ",config.caminho_atual)
+                print("ponto final x = {} e y = {}".format(mapX, mapY))
+                # print("Vizinhos {}",vizinhosPonto)
                 config.points = []
 
             glutPostRedisplay()
@@ -65,17 +76,10 @@ def motion(x, y):
         update_projection()
         glutPostRedisplay()
 
-# def find_nearest_vertices(point):
-#     global kdtree
-#     nearest_vertices = []
-#     for point in config.points:
-#         dist, idx = kdtree.query(point)
-#         nearest_vertices.append(config.coords[idx])
-#     return np.array(nearest_vertices)
-
 def main():
     glutInit()
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB)
+    glutSetOption(GLUT_MULTISAMPLE, 8)
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH | GLUT_MULTISAMPLE)
     glutInitWindowSize(800, 600)
     glutInitWindowPosition(100, 100)
     glutCreateWindow(b'config.mapa')

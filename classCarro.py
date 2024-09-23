@@ -5,7 +5,7 @@ import numpy as np
 import config
 import os
 class Carro:
-    def __init__(self, textura_file = 'C://Users//Lucas//Desktop//trabalhoFinalCG//carro.png'):
+    def __init__(self, textura_file = 'C://Users//Lucas//Desktop//trabalhoFinalCG//imgs//carro.png'):
         self.texCarro = self.carregaTextura(textura_file)
 
     # Função responsável por carregar uma textura a partir do nome do arquivo
@@ -32,17 +32,59 @@ class Carro:
     # Função que desenha o carro (um quadrado de lado 2 centrado na origem com textura de carro)
     def desenha(self):
         glPushMatrix()
+        glColor(1,1,1)
+        # Desenha a base do triângulo (plano inferior)
+        glBegin(GL_TRIANGLES)
         
-        glBindTexture(GL_TEXTURE_2D, self.texCarro) # ativando a textura do carro
-        glBegin(GL_QUADS)                           # desenhando um quadrado
-        glTexCoord2f(0,0)                           # coordenada da textura do canto inferior esquerdo
-        glVertex2f(-config.tamCarro,-config.tamCarro)                           # vértice inferior esquerdo
-        glTexCoord2f(1,0)                           # coordenada da textura do canto inferior direito
-        glVertex2f( config.tamCarro,-config.tamCarro)                           # vértice inferior direito
-        glTexCoord2f(1,1)                           # coordenada da textura do canto superior direito
-        glVertex2f( config.tamCarro, config.tamCarro)                           # vértice superior direito
-        glTexCoord2f(0,1)                           # coordenada da textura do canto superior esquerdo
-        glVertex2f(-config.tamCarro, config.tamCarro)                           # vértice superior esquerdo
+        # Vértice inferior esquerdo
+        glVertex3f(-config.tamCarro , -config.tamCarro, 0.0)
+        
+        # Vértice inferior direito
+        glVertex3f(config.tamCarro , -config.tamCarro , 0.0)
+        
+        # Vértice superior (apontando para frente)
+        glVertex3f(0.0, config.tamCarro, 0.0)
+        
         glEnd()
-        glBindTexture(GL_TEXTURE_2D, 0)             # desativando a textura do carro
+
+        # Desenha a parte superior do triângulo (plano superior ligeiramente elevado)
+
+        glColor(0,0,1)
+        glBegin(GL_TRIANGLES)
+        
+        # Vértice inferior esquerdo elevado
+        glVertex3f(-config.tamCarro, -config.tamCarro, 0.00001)
+        
+        # Vértice inferior direito elevado
+        glVertex3f(config.tamCarro, -config.tamCarro, 0.00001)
+        
+        # Vértice superior elevado
+        glVertex3f(0.0, config.tamCarro, 0.00001)
+        
+        glEnd()
+
+        # Desenha as laterais para dar volume
+        glColor(1,1,1)
+        glBegin(GL_QUADS)
+        
+        # Lado esquerdo
+        glVertex3f(-config.tamCarro, -config.tamCarro, 0.0)
+        glVertex3f(0.0, config.tamCarro, 0.0)
+        glVertex3f(0.0, config.tamCarro, 0.00001)
+        glVertex3f(-config.tamCarro, -config.tamCarro, 0.00001)
+        
+        # Lado direito
+        glVertex3f(config.tamCarro, -config.tamCarro, 0.0)
+        glVertex3f(0.0, config.tamCarro, 0.0)
+        glVertex3f(0.0, config.tamCarro, 0.00001)
+        glVertex3f(config.tamCarro, -config.tamCarro, 0.00001)
+        
+        # Lado inferior
+        glVertex3f(-config.tamCarro, -config.tamCarro, 0.0)
+        glVertex3f(config.tamCarro, -config.tamCarro, 0.0)
+        glVertex3f(config.tamCarro, -config.tamCarro, 0.00001)
+        glVertex3f(-config.tamCarro, -config.tamCarro, 0.00001)
+        
+        glEnd()
+
         glPopMatrix()

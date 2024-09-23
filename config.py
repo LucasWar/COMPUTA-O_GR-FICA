@@ -1,8 +1,10 @@
 import glm
 from collections import defaultdict
 from loadMap import *
+from utils import gerarCordenadasIcones
 # global latitude
 # global longitude
+
 
 latitude = -4.9261
 longitude = -37.9743
@@ -36,7 +38,7 @@ pos = glm.vec3(-37.97284880149743,-4.925185938966515,0) # posição do carro (re
 dir = glm.vec3(0,1,0) # vetor direção do carro (vetor j representando o eixo y local)
 lat = glm.vec3(1,0,0) # vetor lateral do carro (vetor i representando o eixo x local)
 M = glm.mat4(1)       # matriz de mudança de base
-velocDir = 0.0001        # velocidade de deslocamento do carro
+velocDir = 0.0000001        # velocidade de deslocamento do carro
 velocAng = 3       # velocidade de rotação do carro 
 frente   = False      # controle teclado (seta cima)
 tras     = False      # controle teclado (seta baixo)
@@ -80,7 +82,13 @@ for node in nodes:
 for chave, valor in matrizDeVizinhos.items():
     novaMatrizDeVizinhos[chave] = valor.copy()
 
+#Icones
+numIcones = 6
+posIcones = gerarCordenadasIcones(mapa,numIcones)
 
+numIconesAlertas = 6
+posIconesAlertas = gerarCordenadasIcones(mapa,numIcones)
 
-AGUA = False
-PREDIOS = False
+larguraIcone = 0.00007
+alturaIcone = 0.00007
+profundidadeIcone = 0.00001

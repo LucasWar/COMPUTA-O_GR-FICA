@@ -41,6 +41,7 @@ def timer(v):
                 config.pos = destino
                 config.index_caminho += 1
                 if config.index_caminho >= len(config.caminho_atual):
+                    config.velocDir = 0.0000001
                     config.movimento_ativo = False
             else:
                 config.pos += config.velocDir * direcao
@@ -53,7 +54,9 @@ def timer(v):
                 config.dir = previous_dir
                 config.lat = previous_lat
         else:
+            print("AQUI")
             config.movimento_ativo = False
+            config.velocDir = 0.0000001
 
     else:
         if config.frente:
@@ -75,14 +78,12 @@ def timer(v):
     if config.frente or config.tras or config.esquerda or config.direita or config.movimento_ativo:
         calcMatrix()
         update_projection()
-
     glutPostRedisplay()
 
 def iniciar_movimento():
     if config.caminhoFinal:
-        config.caminho_atual = [(x, y) for x, y in config.caminhoFinal.keys()]
         config.index_caminho = 0
         config.movimento_ativo = True
-        # Posicionar o carro no primeiro ponto do caminho
         if config.caminho_atual:
             config.pos = glm.vec3(config.caminho_atual[0][0], config.caminho_atual[0][1], 0)
+            calcMatrix()
