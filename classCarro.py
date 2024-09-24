@@ -5,7 +5,7 @@ import numpy as np
 import config
 import os
 class Carro:
-    def __init__(self, textura_file = 'C://Users//Lucas//Desktop//trabalhoFinalCG//imgs//carro.png'):
+    def __init__(self, textura_file = 'imgs//carro.png'):
         self.texCarro = self.carregaTextura(textura_file)
 
     # Função responsável por carregar uma textura a partir do nome do arquivo

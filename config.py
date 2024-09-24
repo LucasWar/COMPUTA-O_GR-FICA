@@ -83,12 +83,18 @@ for chave, valor in matrizDeVizinhos.items():
     novaMatrizDeVizinhos[chave] = valor.copy()
 
 #Icones
-numIcones = 6
+numIcones = 5
 posIcones = gerarCordenadasIcones(mapa,numIcones)
 
-numIconesAlertas = 6
+numIconesAlertas = 8
 posIconesAlertas = gerarCordenadasIcones(mapa,numIcones)
 
-larguraIcone = 0.00007
-alturaIcone = 0.00007
-profundidadeIcone = 0.00001
+numIconesSensor = 10
+posIconesSensor = gerarCordenadasIcones(mapa,numIcones)
+
+numIconesSemaforo = 12
+posIconesSemaforo = gerarCordenadasIcones(mapa,numIconesSemaforo)
+
+larguraIcone = 0.00004
+alturaIcone = 0.00004
+profundidadeIcone = 0.00004

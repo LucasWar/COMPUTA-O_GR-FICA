@@ -8,8 +8,9 @@ from utils import update_projection
 from classCarro import Carro
 from objetos import Icone
 import math
+from PIL import Image
 def init():
-    global carro, police
+    global carro, police, predio , alerta, semaforo, sensor
     # Define a cor de fundo da janela (branco)
     glClearColor(0.7, 0.7, 0.7, 1.0)
     update_projection()
@@ -19,9 +20,34 @@ def init():
     glEnable(GL_TEXTURE_2D)                             # habilita o uso de texturas 2D
     glEnable(GL_BLEND);                           # habilita a funcionalidade de mistura (necessário para objetos transparentes)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)   # define como a mistura entre objetos transparência deve ser realizada
+    glEnable(GL_POLYGON_OFFSET_FILL)
+    glPolygonOffset(1.0, 1.0)   
     carro = Carro()
-    police = Icone(config.posIcones)
+    police = Icone(config.posIcones,'imgs//policeIcone.png',(0,0,0))
+    alerta = Icone(config.posIconesAlertas,'imgs//alerta.png',(1,0.77,0.18))
+    semaforo = Icone(config.posIconesSemaforo,'imgs//Semaforo.png',(1,1,0))
+    sensor = Icone(config.posIconesSensor,'imgs//speed limit60.png',(0,0,0))
+    predio = carregaTextura('imgs//texture2.jpg')
 
+def carregaTextura(filename):
+    # carregamento da textura feita pelo módulo PIL
+    img = Image.open(filename)                  # abrindo o arquivo da textura
+    img = img.transpose(Image.FLIP_TOP_BOTTOM)  # espelhando verticalmente a textura (normalmente, a coordenada y das imagens cresce de cima para baixo)
+    imgData = img.convert("RGBA").tobytes()     # convertendo a imagem carregada em bytes que serão lidos pelo OpenGL
+
+    # criando o objeto textura dentro da máquina OpenGL
+    texId = glGenTextures(1)                                                                                # criando um objeto textura
+    glBindTexture(GL_TEXTURE_2D, texId)                                                                     # tornando o objeto textura recém criado ativo
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)                                        # suavização quando um texel ocupa vários pixels
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)                                        # suavização quanto vários texels ocupam um único pixel
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE)                                              # definindo que a cor da textura substituirá a cor do polígono
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  img.width, img.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imgData)  # enviando os dados lidos pelo módulo PIL para a OpenGL
+    glBindTexture(GL_TEXTURE_2D, 0)                                                                         # tornando o objeto textura inativo por enquanto
+
+        # retornando o identificador da textura recém-criada
+    return texId
 
 def desenharCaminho():
     if config.caminhoFinal:
@@ -100,7 +126,7 @@ def desenharPredios():
             for poly in geometry.geoms:
                 desenharPredio3d(poly)
 
-def desenharPredio3d(polygon, altura=0.0002):
+def desenharPredio3d(polygon, altura=0.0001):
     # Desenha a base do prédio
     coordenadas = list(polygon.exterior.coords)
     glBegin(GL_POLYGON)
@@ -109,24 +135,28 @@ def desenharPredio3d(polygon, altura=0.0002):
     glEnd()
 
     # Desenha as paredes do prédio
+    glBindTexture(GL_TEXTURE_2D, predio)
     glBegin(GL_QUADS)
     for i in range(len(coordenadas) - 1):
         x1, y1 = coordenadas[i]
         x2, y2 = coordenadas[i+1]
         
         # Parede
+        glTexCoord2f(1,0)
         glVertex3f(x1, y1, 0)
+        glTexCoord2f(0,0)
         glVertex3f(x2, y2, 0)
+        glTexCoord2f(0,1)
         glVertex3f(x2, y2, altura)
+        glTexCoord2f(1,1)
         glVertex3f(x1, y1, altura)
     glEnd()
-
+    glBindTexture(GL_TEXTURE_2D, 0)    
     # Desenha o topo do prédio
     glBegin(GL_POLYGON)
     for coord in coordenadas:
         glVertex3f(coord[0], coord[1], altura)
     glEnd()
-
 
 
 def drawMap():
@@ -218,16 +248,24 @@ def drawPoints():
             glVertex2f(point[0] + x, point[1] + y)  # Adiciona o ponto ajustado
         glEnd()
 
+
+
+
 def display():
     global novaMatrizDeVizinhos, caminhoFinal
 
 
-    glClear(GL_COLOR_BUFFER_BIT)
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     
     drawMap()
-
+    glPushMatrix()
+   
+    glEnable(GL_DEPTH_TEST)
     desenharPredios()
+    glDisable(GL_DEPTH_TEST)
 
+    glPopMatrix()
+    
     desenharElementos()
 
     drawPoints()
@@ -235,7 +273,12 @@ def display():
     desenharCaminho()
 
     glPushMatrix()
+    glEnable(GL_DEPTH_TEST)
     police.desenha()
+    alerta.desenha()
+    sensor.desenha()
+    semaforo.desenha()
+    glDisable(GL_DEPTH_TEST)
     glPopMatrix()
 
     glPushMatrix()
