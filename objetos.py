@@ -43,7 +43,7 @@ class Icone:
             # Rotacionar em torno do eixo X para que as faces fiquem posicionadas corretamente
             glRotatef(90, 1, 0, 0)
 
-            self.angulo_rotacao += 0.03  # Incremento do ângulo de rotação (ajuste para aumentar/diminuir a velocidade)
+            self.angulo_rotacao += 1.5  # Incremento do ângulo de rotação (ajuste para aumentar/diminuir a velocidade)
 
             # Aplicando a rotação no eixo Y
 

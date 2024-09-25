@@ -25,16 +25,16 @@ def tecladoUpSpecial(key, x, y):
 
 def keyboard(key, x, y):
     global qtdZoom
-    if key == b'+':
+    if key == b'+' and config.current_mode == 'ortho':
         config.qtdZoom /= 1.1  # Aumenta a escala
-    elif key == b'-':
+    elif key == b'-' and config.current_mode == 'ortho':
         config.qtdZoom *= 1.1  # Diminui a escala
-    elif key == b'm':  # Alterna entre modos de visualização
-        if config.current_mode == "perspective":
-            config.current_mode = "ortho"
-        else:
-            config.current_mode = "perspective"
+    # elif key == b'm':  # Alterna entre modos de visualização
+    #     if config.current_mode == "perspective":
+    #         config.current_mode = "ortho"
+    #     else:
+    #         config.current_mode = "perspective"
     elif key == b's':  # Alterna entre modos devisualização
-        config.velocDir = 0.0003
+        config.velocDir = 0.00009
     update_projection()
     glutPostRedisplay()

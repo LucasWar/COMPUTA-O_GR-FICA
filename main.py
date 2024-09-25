@@ -13,14 +13,14 @@ global ultCordMouseX, ultCordMouseY
 
 def mouse(button, state, x, y):
     global ultCordMouseX, ultCordMouseY
-    if button == GLUT_LEFT_BUTTON:
+    if button == GLUT_LEFT_BUTTON  and config.current_mode == 'ortho':
         if state == GLUT_DOWN:
             config.mousePres = True
             ultCordMouseX = x
             ultCordMouseY = y
         elif state == GLUT_UP:
             config.mousePres = False
-    if button == GLUT_RIGHT_BUTTON:
+    if button == GLUT_RIGHT_BUTTON  and config.current_mode == 'ortho':
         if state == GLUT_DOWN:
             mapX, mapY = telaParaMapa(x, y)
             nearest_point = buscarPontoMaisProximo(mapX, mapY)
@@ -54,8 +54,6 @@ def mouse(button, state, x, y):
 
                 iniciar_movimento()
                 update_projection()
-                print("ponto final caminho_atual ",config.caminho_atual)
-                print("ponto final x = {} e y = {}".format(mapX, mapY))
                 # print("Vizinhos {}",vizinhosPonto)
                 config.points = []
 

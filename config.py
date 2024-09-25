@@ -10,17 +10,17 @@ latitude = -4.9261
 longitude = -37.9743
 distMapa = 1300
 
-elementos = {
-    'leisure': 'park',            
-    'natural': 'water',           
-    'landuse': 'grass'
-}
+
 
 coresElementos = [[0,0,0],[0.2,0.3,0.7],[0,0.7,0.2]]
 naturalElementos = []
 
-for (chave, valor), cor in zip(elementos.items(), coresElementos):
-    naturalElementos.append([cor, carregarElementosNaturais([chave, valor])])
+parkCoord = carregarElementosNaturais(['leisure','park'])
+gramaCoord = carregarElementosNaturais(['landuse','grass'])
+waterCoord = carregarElementosNaturais(['natural','water'])
+
+# for (chave, valor), cor in zip(elementos.items(), coresElementos):
+#     naturalElementos.append([cor, carregarElementosNaturais([chave, valor])])
 
 predios = carregarEdificios()
 
@@ -34,7 +34,7 @@ distanciaSegmento = 40
 
 #variavies carro
 FPS = 60             # quantidade de frames por segundo que deseja-se atualizar a aplicação
-pos = glm.vec3(-37.97284880149743,-4.925185938966515,0) # posição do carro (representando a origem do eixo local)
+pos = glm.vec3(0,0,0) # posição do carro (representando a origem do eixo local)
 dir = glm.vec3(0,1,0) # vetor direção do carro (vetor j representando o eixo y local)
 lat = glm.vec3(1,0,0) # vetor lateral do carro (vetor i representando o eixo x local)
 M = glm.mat4(1)       # matriz de mudança de base

@@ -7,13 +7,16 @@ import config
 from utils import update_projection
 from classCarro import Carro
 from objetos import Icone
+from elementosClass import elemento
+from timergl import iniciarLuz,atuaalizarPontoDeLuz
 import math
 from PIL import Image
 def init():
-    global carro, police, predio , alerta, semaforo, sensor
+    global carro, police, predio , alerta, semaforo, sensor,grama,park, water
     # Define a cor de fundo da janela (branco)
-    glClearColor(0.7, 0.7, 0.7, 1.0)
+    glClearColor(0.5, 0.5, 0.5, 1.0)
     update_projection()
+    iniciarLuz()
     glEnable(GL_POLYGON_SMOOTH)
     glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST)
     glEnable(GL_MULTISAMPLE)                            # habilita anti-aliasing
@@ -28,6 +31,10 @@ def init():
     semaforo = Icone(config.posIconesSemaforo,'imgs//Semaforo.png',(1,1,0))
     sensor = Icone(config.posIconesSensor,'imgs//speed limit60.png',(0,0,0))
     predio = carregaTextura('imgs//texture2.jpg')
+
+    grama = elemento(config.gramaCoord,'imgs//gramaText.jfif')
+    park = elemento(config.parkCoord,'imgs//gramaText.jfif')
+    water = elemento(config.waterCoord,'imgs//waterText.jfif')
 
 def carregaTextura(filename):
     # carregamento da textura feita pelo módulo PIL
@@ -50,6 +57,8 @@ def carregaTextura(filename):
     return texId
 
 def desenharCaminho():
+    glDisable(GL_LIGHTING)
+    glDisable(GL_LIGHT0)  # Ativa a luz 0
     if config.caminhoFinal:
         glColor(0.43, 0.72, 1)  # Cor do caminho
         glBegin(GL_QUADS)  # Usando quadriláteros para garantir o preenchimento
@@ -93,18 +102,25 @@ def desenharCaminho():
                 glVertex2f(ponto1.x - perpendicular_prev.x, ponto1.y - perpendicular_prev.y)
         
         glEnd()
-
+        glEnable(GL_LIGHTING)
+        glEnable(GL_LIGHT0)  # Ativa a luz 0
 def desenharElementos():
+    texturaGrama = carregaTextura("imgs//gramaText.jfif")
+    glBindTexture(GL_TEXTURE_2D, texturaGrama)  # Ativa a textura
+    glEnable(GL_TEXTURE_2D)  # Habilita o mapeamento de textura
+
     for caracte in config.naturalElementos:
         cor = caracte[0]
         pontos = caracte[1]
-        glColor3f(cor[0], cor[1], cor[2])
+        glColor3f(cor[0], cor[1], cor[2])  # Define a cor, caso necessário
         for geometry in pontos['geometry']:
             if geometry.geom_type == 'Polygon':
                 borda = geometry.exterior
                 coordenadas = list(borda.coords)
                 glBegin(GL_POLYGON)
-                for coord in coordenadas:
+                for i, coord in enumerate(coordenadas):
+                    # Aplica as coordenadas da textura baseadas no índice
+                    glTexCoord2f(i % 2, i // 2)
                     glVertex2f(coord[0], coord[1])
                 glEnd()
             elif geometry.geom_type == 'MultiPolygon':
@@ -112,9 +128,13 @@ def desenharElementos():
                     borda = poly.exterior
                     coordenadas = list(borda.coords)
                     glBegin(GL_POLYGON)
-                    for coord in coordenadas:
+                    for i, coord in enumerate(coordenadas):
+                        glTexCoord2f(i % 2, i // 2)
                         glVertex2f(coord[0], coord[1])
                     glEnd()
+
+    glDisable(GL_TEXTURE_2D)  # Desativa o mapeamento de textura após o uso
+    glBindTexture(GL_TEXTURE_2D, 0)  # Desativa a textura
 
 def desenharPredios():
     glColor3f(0.3, 0.3, 0.3)
@@ -160,7 +180,7 @@ def desenharPredio3d(polygon, altura=0.0001):
 
 
 def drawMap():
-    glColor3f(0.5, 0.5, 0.5)
+    glColor3f(0.3, 0.3, 0.3)
     
     # Primeira parte: Desenho das estradas
     glBegin(GL_QUADS)
@@ -256,7 +276,6 @@ def display():
 
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-    
     drawMap()
     glPushMatrix()
    
@@ -264,26 +283,38 @@ def display():
     desenharPredios()
     glDisable(GL_DEPTH_TEST)
 
-    glPopMatrix()
-    
-    desenharElementos()
-
-    drawPoints()
+    glPopMatrix()    
 
     desenharCaminho()
 
     glPushMatrix()
+    park.desenha()
+    water.desenha()
+    grama.desenha()
+    glPopMatrix()
+    drawPoints()
+
+    glPushMatrix()
+    glDisable(GL_LIGHTING)
+    glDisable(GL_LIGHT0) 
     glEnable(GL_DEPTH_TEST)
     police.desenha()
     alerta.desenha()
     sensor.desenha()
     semaforo.desenha()
     glDisable(GL_DEPTH_TEST)
+    glEnable(GL_LIGHTING)
+    glEnable(GL_LIGHT0) 
     glPopMatrix()
 
     glPushMatrix()
+    glDisable(GL_LIGHTING)
+    glDisable(GL_LIGHT0) 
     glMultMatrixf(np.asarray(glm.transpose(config.M))) # função que aplica uma matriz qualquer no objeto
     carro.desenha()
-    
+    glEnable(GL_LIGHTING)
+    glEnable(GL_LIGHT0) 
     glPopMatrix()
+
+    atuaalizarPontoDeLuz()
     glutSwapBuffers()

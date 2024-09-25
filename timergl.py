@@ -4,7 +4,28 @@ from OpenGL.GLU import *
 from utils import vericarCarroEstrada, calcMatrix, update_projection
 import glm
 import config
+import time
+def iniciarLuz():
+    # Ativar iluminação
+    glEnable(GL_LIGHTING)
+    
+    # Definir luz
+    glEnable(GL_LIGHT0)  # Ativa a luz 0
+    luzPosicao = [0.0, 0.0, 1.0, 0.0]  # Posição da luz
+    luzDifusa = [1.0, 1.0, 1.0, 1.0]  # Cor difusa (branca)
+    luzAmbiente = [1, 1, 1, 1.0]  # Cor ambiente
 
+    # Configurar as propriedades da luz
+    glLightfv(GL_LIGHT0, GL_POSITION, luzPosicao)
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, luzDifusa)
+    glLightfv(GL_LIGHT0, GL_AMBIENT, luzAmbiente)
+    
+
+def atuaalizarPontoDeLuz():
+    # Atualiza a posição da luz para acompanhar o carro
+    luzPosicao = [config.pos.x + 0.001, config.pos.y, 0.0003, 1]  # Luz a 1 unidade acima do carro
+    glLightfv(GL_LIGHT0, GL_POSITION, luzPosicao)
+   
 def timer(v):
     glutTimerFunc(int(1000/config.FPS), timer, 0)  # a cada frame é necessário chamar essa função para 'agendar' a sua próxima execução
 
@@ -41,8 +62,11 @@ def timer(v):
                 config.pos = destino
                 config.index_caminho += 1
                 if config.index_caminho >= len(config.caminho_atual):
+                    time.sleep(2)
+                    config.current_mode = "ortho"
                     config.velocDir = 0.0000001
                     config.movimento_ativo = False
+                    update_projection()
             else:
                 config.pos += config.velocDir * direcao
 
@@ -54,9 +78,11 @@ def timer(v):
                 config.dir = previous_dir
                 config.lat = previous_lat
         else:
-            print("AQUI")
+            time.sleep(2)
+            config.current_mode = "ortho"
             config.movimento_ativo = False
             config.velocDir = 0.0000001
+            update_projection()
 
     else:
         if config.frente:
