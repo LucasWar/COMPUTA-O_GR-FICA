@@ -26,7 +26,6 @@ def mouse(button, state, x, y):
             nearest_point = buscarPontoMaisProximo(mapX, mapY)
             mapX, mapY = nearest_point
             config.points.append(nearest_point)
-            
             if len(config.points) < 2:
                 config.caminhoFinal = {}
                 for chave, valor in config.matrizDeVizinhos.items():
@@ -38,7 +37,6 @@ def mouse(button, state, x, y):
             else:
                 vizinhosPonto = buscaVizinhosDoPonto(mapX, mapY)
                 config.novaMatrizDeVizinhos[mapX, mapY] = vizinhosPonto
-                #Corrigir esse for, erro provavel loop eterno pois deve esta appontando para ele mesmo.
                 for vizinho in vizinhosPonto:
                     config.novaMatrizDeVizinhos[vizinho[0],vizinho[1]].append((mapX, mapY))
                 config.caminhoFinal = estrela(config.points[0][0],config.points[0][1],config.points[1][0],config.points[1][1],config.novaMatrizDeVizinhos)

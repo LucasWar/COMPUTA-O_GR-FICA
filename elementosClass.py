@@ -7,7 +7,6 @@ class elemento:
         self.textura = self.carregarTextura(caminho_textura)
 
     def carregarTextura(self, filename):
-        # Carregamento da textura com PIL
         img = Image.open(filename)
         img = img.transpose(Image.FLIP_TOP_BOTTOM)
         imgData = img.convert("RGBA").tobytes()
@@ -23,8 +22,8 @@ class elemento:
         return texId
 
     def desenha(self):
-        glBindTexture(GL_TEXTURE_2D, self.textura)  # Ativa a textura
-        glEnable(GL_TEXTURE_2D)  # Habilita o mapeamento de textura
+        glBindTexture(GL_TEXTURE_2D, self.textura)
+        glEnable(GL_TEXTURE_2D)  
 
         pontos = self.elemento
 
@@ -34,7 +33,6 @@ class elemento:
                 coordenadas = list(borda.coords)
                 glBegin(GL_POLYGON)
                 for i, coord in enumerate(coordenadas):
-                    # Aplica as coordenadas da textura baseadas no índice
                     glTexCoord2f(i % 2, i // 2)
                     glVertex2f(coord[0], coord[1])
                 glEnd()
@@ -48,4 +46,4 @@ class elemento:
                         glVertex2f(coord[0], coord[1])
                     glEnd()
 
-        glBindTexture(GL_TEXTURE_2D, 0)  # Desativa a textura
+        glBindTexture(GL_TEXTURE_2D, 0) 

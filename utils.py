@@ -15,8 +15,8 @@ def update_projection():
     aspect_ratio = 800 / 600
 
     if config.current_mode == "perspective":
-        fov = 60.0  # Campo de visão para a perspectiva
-        near = 0.001  # Plano próximo
+        fov = 60.0 
+        near = 0.001 
         far = 1000.0  # Plano distante
         gluPerspective(fov, aspect_ratio, near, far)
         glMatrixMode(GL_MODELVIEW)
@@ -41,12 +41,10 @@ def update_projection():
                   0, 1, 0)  # Vetor de "up"
                   
 def telaParaMapa(x, y):
-    
     width = glutGet(GLUT_WINDOW_WIDTH)
     height = glutGet(GLUT_WINDOW_HEIGHT)
     map_width = (config.x_max - config.x_min) * config.qtdZoom
     map_height = (config.y_max - config.y_min) * config.qtdZoom
-
     mapX = config.camera_x + (x / width - 0.5) * map_width
     mapY = config.camera_y - (y / height - 0.5) * map_height
     return mapX, mapY
@@ -68,7 +66,6 @@ def buscaVizinhosDoPonto(mapX, mapY, tolerance=0.000001):
     return edges_and_vertices
 
 def verificarSeguimento(A, B, P, tolerance):
-    """Verifica se o ponto P está próximo ao segmento de linha AB dentro de uma tolerância."""
     A = np.array(A)
     B = np.array(B)
     P = np.array(P)
@@ -117,31 +114,24 @@ def buscarPontoMaisProximo(mapX, mapY):
     return nearest_point
 
 def vericarCarroEstrada():
-    # Verificar a posição do carro em relação aos polígonos das estradas
-    car_pos = glm.vec2(config.pos.x, config.pos.y)  # Converta para vetor 2D
-
+    car_pos = glm.vec2(config.pos.x, config.pos.y) 
     for u, v, data in config.mapa.edges(keys=False, data=True):
-        # Coordenadas dos nós da estrada
         ponto1 = glm.vec2(config.mapa.nodes[u]['x'], config.mapa.nodes[u]['y'])
         ponto2 = glm.vec2(config.mapa.nodes[v]['x'], config.mapa.nodes[v]['y'])
 
-        # Vetor da estrada
         direcao = ponto2 - ponto1
         length = glm.length(direcao)
         direcao = glm.normalize(direcao)
 
-        # Vetor perpendicular para calcular o deslocamento da largura da estrada
         perpendicular = glm.vec2(-direcao.y, direcao.x) * (config.larguraPista / 2)
 
-        # Vértices do polígono da estrada
         vertices = [
-            ponto1 + perpendicular,  # Canto superior esquerdo
-            ponto1 - perpendicular,  # Canto inferior esquerdo
-            ponto2 - perpendicular,  # Canto inferior direito
-            ponto2 + perpendicular,  # Canto superior direito
+            ponto1 + perpendicular,  
+            ponto1 - perpendicular,  
+            ponto2 - perpendicular,  
+            ponto2 + perpendicular,  
         ]
 
-        # Verificar se a posição do carro está dentro do polígono
         if verificarPontoPoligno(car_pos.x,car_pos.y,vertices):
             return True
 
@@ -149,7 +139,6 @@ def vericarCarroEstrada():
 
 
 def verificarPontoPoligno(x, y, vertices):
-    """Função para verificar se um ponto (x, y) está dentro de um polígono definido por vertices."""
     num_vertices = len(vertices)
     inside = False
 

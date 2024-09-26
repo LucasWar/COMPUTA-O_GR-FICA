@@ -8,34 +8,27 @@ import time
 def iniciarLuz():
     glEnable(GL_LIGHTING)
     glEnable(GL_LIGHT0)
-
-    
     luzPosicao = [0.0, 0.0, 1.0, 1.0] 
-
-    
     luzDifusa = [1.0, 1.0, 1.0, 1.0]  
     luzAmbiente = [1, 1, 1, 1.0]  
-
-    
     direcaoLuz = [1.0, 0.0, 0.0]  
-
-    
     glLightfv(GL_LIGHT0, GL_POSITION, luzPosicao)
     glLightfv(GL_LIGHT0, GL_DIFFUSE, luzDifusa)
     glLightfv(GL_LIGHT0, GL_AMBIENT, luzAmbiente)
-
-    
     glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, direcaoLuz)
-    glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 45.0)  
+    glLightf(GL_LIGHT0, GL_CONSTANT_ATTENUATION, 1)
+
+    glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, 30.0)     # Atenuação linear
+    glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 30)
+
+
+    glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 15.0)  
     glLightf(GL_LIGHT0, GL_SPOT_EXPONENT, 2.0)
     
 
 def atuaalizarPontoDeLuz():
-    
     luzPosicao = [config.pos.x, config.pos.y, 0.0005, 1]
-    direcaoLuz = [config.dir.x, config.dir.y, -0.3]  
-
-    
+    direcaoLuz = [config.dir.x, config.dir.y, -0.3]      
     glLightfv(GL_LIGHT0, GL_POSITION, luzPosicao)
     glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, direcaoLuz)
    
@@ -79,8 +72,7 @@ def timer(v):
                     config.current_mode = "ortho"
                     config.velocDir = 0.0000001
                     config.movimento_ativo = False
-                    config.pos.x = 0
-                    config.pos.y = 0
+                    
                     calcMatrix()
                     update_projection()
                     atuaalizarPontoDeLuz()
@@ -99,8 +91,7 @@ def timer(v):
             config.current_mode = "ortho"
             config.movimento_ativo = False
             config.velocDir = 0.0000001
-            config.pos.x = 0
-            config.pos.y = 0
+            
             calcMatrix()
             update_projection()
             atuaalizarPontoDeLuz()
