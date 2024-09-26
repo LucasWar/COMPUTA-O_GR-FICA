@@ -54,7 +54,6 @@ def mouse(button, state, x, y):
 
                 iniciar_movimento()
                 update_projection()
-                # print("Vizinhos {}",vizinhosPonto)
                 config.points = []
 
             glutPostRedisplay()

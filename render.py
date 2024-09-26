@@ -13,16 +13,15 @@ import math
 from PIL import Image
 def init():
     global carro, police, predio , alerta, semaforo, sensor,grama,park, water
-    # Define a cor de fundo da janela (branco)
     glClearColor(0.5, 0.5, 0.5, 1.0)
     update_projection()
     iniciarLuz()
     glEnable(GL_POLYGON_SMOOTH)
     glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST)
-    glEnable(GL_MULTISAMPLE)                            # habilita anti-aliasing
-    glEnable(GL_TEXTURE_2D)                             # habilita o uso de texturas 2D
-    glEnable(GL_BLEND);                           # habilita a funcionalidade de mistura (necessário para objetos transparentes)
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)   # define como a mistura entre objetos transparência deve ser realizada
+    glEnable(GL_MULTISAMPLE)                           
+    glEnable(GL_TEXTURE_2D)                            
+    glEnable(GL_BLEND);                           
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     glEnable(GL_POLYGON_OFFSET_FILL)
     glPolygonOffset(1.0, 1.0)   
     carro = Carro()
@@ -37,46 +36,45 @@ def init():
     water = elemento(config.waterCoord,'imgs//waterText.jfif')
 
 def carregaTextura(filename):
-    # carregamento da textura feita pelo módulo PIL
-    img = Image.open(filename)                  # abrindo o arquivo da textura
-    img = img.transpose(Image.FLIP_TOP_BOTTOM)  # espelhando verticalmente a textura (normalmente, a coordenada y das imagens cresce de cima para baixo)
-    imgData = img.convert("RGBA").tobytes()     # convertendo a imagem carregada em bytes que serão lidos pelo OpenGL
+    
+    img = Image.open(filename)                  
+    img = img.transpose(Image.FLIP_TOP_BOTTOM)  
+    imgData = img.convert("RGBA").tobytes()     
 
-    # criando o objeto textura dentro da máquina OpenGL
-    texId = glGenTextures(1)                                                                                # criando um objeto textura
-    glBindTexture(GL_TEXTURE_2D, texId)                                                                     # tornando o objeto textura recém criado ativo
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)                                        # suavização quando um texel ocupa vários pixels
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)                                        # suavização quanto vários texels ocupam um único pixel
+    
+    texId = glGenTextures(1)                                                                                
+    glBindTexture(GL_TEXTURE_2D, texId)                                                                     
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)                                        
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)                                        
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE)                                              # definindo que a cor da textura substituirá a cor do polígono
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  img.width, img.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imgData)  # enviando os dados lidos pelo módulo PIL para a OpenGL
-    glBindTexture(GL_TEXTURE_2D, 0)                                                                         # tornando o objeto textura inativo por enquanto
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE)                                              
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,  img.width, img.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imgData)  
+    glBindTexture(GL_TEXTURE_2D, 0)                                                                         
 
-        # retornando o identificador da textura recém-criada
     return texId
 
 def desenharCaminho():
     glDisable(GL_LIGHTING)
-    glDisable(GL_LIGHT0)  # Ativa a luz 0
+    glDisable(GL_LIGHT0)  
     if config.caminhoFinal:
-        glColor(0.43, 0.72, 1)  # Cor do caminho
-        glBegin(GL_QUADS)  # Usando quadriláteros para garantir o preenchimento
+        glColor(0.43, 0.72, 1) 
+        glBegin(GL_QUADS)  
         pontos = list(config.caminhoFinal.items())
         
         for i in range(len(pontos) - 1):
-            # Pontos do caminho atual e o próximo ponto
+            
             ponto1 = glm.vec2(pontos[i][1])
             ponto2 = glm.vec2(pontos[i + 1][1])
 
-            # Calcular a direção do caminho
+
             direcao = ponto2 - ponto1
             direcao = glm.normalize(direcao)
 
-            # Calcular os deslocamentos para criar o retângulo
+
             perpendicular = glm.vec2(-direcao.y, direcao.x) * (config.larguraPista / 2)
 
-            # Definir os quatro vértices do quadrilátero principal
+
             vertices = [
                 ponto1 + perpendicular,
                 ponto1 - perpendicular,
@@ -84,18 +82,18 @@ def desenharCaminho():
                 ponto2 + perpendicular,
             ]
 
-            # Desenhar o quadrilátero principal
+
             for vertex in vertices:
                 glVertex2f(vertex.x, vertex.y)
 
-            # Desenhar vértices extras nas interseções para evitar lacunas
+
             if i > 0:
                 ponto_prev = glm.vec2(pontos[i - 1][1])
                 direcao_prev = ponto1 - ponto_prev
                 direcao_prev = glm.normalize(direcao_prev)
                 perpendicular_prev = glm.vec2(-direcao_prev.y, direcao_prev.x) * (config.larguraPista / 2)
 
-                # Vértices intermediários para preencher a área na interseção
+
                 glVertex2f(ponto1.x + perpendicular_prev.x, ponto1.y + perpendicular_prev.y)
                 glVertex2f(ponto1.x + perpendicular.x, ponto1.y + perpendicular.y)
                 glVertex2f(ponto1.x - perpendicular.x, ponto1.y - perpendicular.y)
@@ -103,23 +101,23 @@ def desenharCaminho():
         
         glEnd()
         glEnable(GL_LIGHTING)
-        glEnable(GL_LIGHT0)  # Ativa a luz 0
+        glEnable(GL_LIGHT0) 
 def desenharElementos():
     texturaGrama = carregaTextura("imgs//gramaText.jfif")
-    glBindTexture(GL_TEXTURE_2D, texturaGrama)  # Ativa a textura
-    glEnable(GL_TEXTURE_2D)  # Habilita o mapeamento de textura
+    glBindTexture(GL_TEXTURE_2D, texturaGrama) 
+    glEnable(GL_TEXTURE_2D) 
 
     for caracte in config.naturalElementos:
         cor = caracte[0]
         pontos = caracte[1]
-        glColor3f(cor[0], cor[1], cor[2])  # Define a cor, caso necessário
+        glColor3f(cor[0], cor[1], cor[2])  
         for geometry in pontos['geometry']:
             if geometry.geom_type == 'Polygon':
                 borda = geometry.exterior
                 coordenadas = list(borda.coords)
                 glBegin(GL_POLYGON)
                 for i, coord in enumerate(coordenadas):
-                    # Aplica as coordenadas da textura baseadas no índice
+                    
                     glTexCoord2f(i % 2, i // 2)
                     glVertex2f(coord[0], coord[1])
                 glEnd()
@@ -133,8 +131,8 @@ def desenharElementos():
                         glVertex2f(coord[0], coord[1])
                     glEnd()
 
-    glDisable(GL_TEXTURE_2D)  # Desativa o mapeamento de textura após o uso
-    glBindTexture(GL_TEXTURE_2D, 0)  # Desativa a textura
+    glDisable(GL_TEXTURE_2D)  
+    glBindTexture(GL_TEXTURE_2D, 0) 
 
 def desenharPredios():
     glColor3f(0.3, 0.3, 0.3)
@@ -147,21 +145,21 @@ def desenharPredios():
                 desenharPredio3d(poly)
 
 def desenharPredio3d(polygon, altura=0.0001):
-    # Desenha a base do prédio
+    
     coordenadas = list(polygon.exterior.coords)
     glBegin(GL_POLYGON)
     for coord in coordenadas:
         glVertex3f(coord[0], coord[1], 0)
     glEnd()
 
-    # Desenha as paredes do prédio
+    
     glBindTexture(GL_TEXTURE_2D, predio)
     glBegin(GL_QUADS)
     for i in range(len(coordenadas) - 1):
         x1, y1 = coordenadas[i]
         x2, y2 = coordenadas[i+1]
         
-        # Parede
+    
         glTexCoord2f(1,0)
         glVertex3f(x1, y1, 0)
         glTexCoord2f(0,0)
@@ -172,7 +170,7 @@ def desenharPredio3d(polygon, altura=0.0001):
         glVertex3f(x1, y1, altura)
     glEnd()
     glBindTexture(GL_TEXTURE_2D, 0)    
-    # Desenha o topo do prédio
+    
     glBegin(GL_POLYGON)
     for coord in coordenadas:
         glVertex3f(coord[0], coord[1], altura)
@@ -182,21 +180,21 @@ def desenharPredio3d(polygon, altura=0.0001):
 def drawMap():
     glColor3f(0.3, 0.3, 0.3)
     
-    # Primeira parte: Desenho das estradas
+    
     glBegin(GL_QUADS)
     for u, v, data in config.mapa.edges(keys=False, data=True):
-        # Usando glm para facilitar o cálculo dos pontos
+    
         ponto1 = glm.vec2(config.mapa.nodes[u]['x'], config.mapa.nodes[u]['y'])
         ponto2 = glm.vec2(config.mapa.nodes[v]['x'], config.mapa.nodes[v]['y'])
 
-        # Calcular direção e normalizar
+    
         direcao = ponto2 - ponto1
         direcao = glm.normalize(direcao)
 
-        # Calcular o deslocamento perpendicular para a largura da estrada
+    
         perpendicular = glm.vec2(-direcao.y, direcao.x) * (config.larguraPista / 2)
 
-        # Calcular vértices do quadrilátero
+
         vertices = [
             ponto1 + perpendicular,
             ponto1 - perpendicular,
@@ -255,9 +253,9 @@ def drawMap():
 
 
 def drawPoints():
-    glColor3f(1.0, 0.0, 0.0)  # Cor vermelha
-    num_segments = 100  # Número de segmentos do círculo
-    radius = 0.00007  # Raio do círculo
+    glColor3f(1.0, 0.0, 0.0)  
+    num_segments = 100  
+    radius = 0.00007  
 
     for point in config.points:
         glBegin(GL_POLYGON)

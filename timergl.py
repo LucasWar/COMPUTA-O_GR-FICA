@@ -6,28 +6,41 @@ import glm
 import config
 import time
 def iniciarLuz():
-    # Ativar iluminação
     glEnable(GL_LIGHTING)
-    
-    # Definir luz
-    glEnable(GL_LIGHT0)  # Ativa a luz 0
-    luzPosicao = [0.0, 0.0, 1.0, 0.0]  # Posição da luz
-    luzDifusa = [1.0, 1.0, 1.0, 1.0]  # Cor difusa (branca)
-    luzAmbiente = [1, 1, 1, 1.0]  # Cor ambiente
+    glEnable(GL_LIGHT0)
 
-    # Configurar as propriedades da luz
+    
+    luzPosicao = [0.0, 0.0, 1.0, 1.0] 
+
+    
+    luzDifusa = [1.0, 1.0, 1.0, 1.0]  
+    luzAmbiente = [1, 1, 1, 1.0]  
+
+    
+    direcaoLuz = [1.0, 0.0, 0.0]  
+
+    
     glLightfv(GL_LIGHT0, GL_POSITION, luzPosicao)
     glLightfv(GL_LIGHT0, GL_DIFFUSE, luzDifusa)
     glLightfv(GL_LIGHT0, GL_AMBIENT, luzAmbiente)
+
+    
+    glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, direcaoLuz)
+    glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 45.0)  
+    glLightf(GL_LIGHT0, GL_SPOT_EXPONENT, 2.0)
     
 
 def atuaalizarPontoDeLuz():
-    # Atualiza a posição da luz para acompanhar o carro
-    luzPosicao = [config.pos.x + 0.001, config.pos.y, 0.0003, 1]  # Luz a 1 unidade acima do carro
+    
+    luzPosicao = [config.pos.x, config.pos.y, 0.0005, 1]
+    direcaoLuz = [config.dir.x, config.dir.y, -0.3]  
+
+    
     glLightfv(GL_LIGHT0, GL_POSITION, luzPosicao)
+    glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, direcaoLuz)
    
 def timer(v):
-    glutTimerFunc(int(1000/config.FPS), timer, 0)  # a cada frame é necessário chamar essa função para 'agendar' a sua próxima execução
+    glutTimerFunc(int(1000/config.FPS), timer, 0)  
 
     previous_pos = config.pos
     previous_dir = config.dir
@@ -42,20 +55,20 @@ def timer(v):
             angle_difference = glm.degrees(glm.acos(glm.dot(glm.normalize(config.dir), glm.normalize(direcao))))
         
             if angle_difference >= config.velocAng:
-                # Calculate the rotation axis (perpendicular to the plane of movement)
+                
                 rotation_axis = glm.cross(config.dir, direcao)
-                rotation_angle = min(config.velocAng, angle_difference)  # Rotate by the smaller of the angular velocity or the angle difference
+                rotation_angle = min(config.velocAng, angle_difference)
 
-                # Apply the rotation to the current direction
+                
                 config.dir = glm.rotate(config.dir, glm.radians(rotation_angle), rotation_axis)
-                config.lat = glm.vec3(-config.dir.y, config.dir.x, 0)  # Update the "up" direction
+                config.lat = glm.vec3(-config.dir.y, config.dir.x, 0) 
 
-                # Recalculate the direction to ensure we continue rotating towards the destination
                 calcMatrix()
+                atuaalizarPontoDeLuz()
                 update_projection()
 
                 glutPostRedisplay()
-                return  # Skip the position update this frame if the car is still aligning
+                return  
 
 
             if distancia < config.velocDir:
@@ -66,12 +79,16 @@ def timer(v):
                     config.current_mode = "ortho"
                     config.velocDir = 0.0000001
                     config.movimento_ativo = False
+                    config.pos.x = 0
+                    config.pos.y = 0
+                    calcMatrix()
                     update_projection()
+                    atuaalizarPontoDeLuz()
             else:
                 config.pos += config.velocDir * direcao
 
             config.dir = direcao
-            config.lat = glm.vec3(-direcao.y, direcao.x, 0)  # Direção "up" ajustada para a direção do movimento
+            config.lat = glm.vec3(-direcao.y, direcao.x, 0)
 
             if not vericarCarroEstrada():
                 config.pos = previous_pos
@@ -82,7 +99,11 @@ def timer(v):
             config.current_mode = "ortho"
             config.movimento_ativo = False
             config.velocDir = 0.0000001
+            config.pos.x = 0
+            config.pos.y = 0
+            calcMatrix()
             update_projection()
+            atuaalizarPontoDeLuz()
 
     else:
         if config.frente:
